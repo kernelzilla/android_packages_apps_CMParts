@@ -207,6 +207,9 @@
     <string name="pref_messaging_tab_app_title">Messaging tab application</string>
     <string name="pref_lockscreen_style_title">Lockscreen style</string>
     <string name="pref_lockscreen_style_summary">Choose the style of the lockscreen</string>
+    <string name="pref_backtrack_title">BackTrack Minipad</string>
+    <string name="pref_backtrack_summary">Motorola Minipad BackTrack input</string>
+
 
     <!-- Long Press Home -->
     <string name="long_press_home_title">Long-press home settings</string>

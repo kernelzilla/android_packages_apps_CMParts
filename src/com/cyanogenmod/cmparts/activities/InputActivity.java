@@ -12,6 +12,7 @@ import android.gesture.GestureLibrary;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemProperties;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -21,6 +22,7 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 import android.provider.Settings;
 import android.util.Log;
+
 
 public class InputActivity extends PreferenceActivity implements OnPreferenceChangeListener {
 
@@ -38,6 +40,9 @@ public class InputActivity extends PreferenceActivity implements OnPreferenceCha
     private static final String USER_DEFINED_KEY2 = "pref_user_defined_key2";
     private static final String USER_DEFINED_KEY3 = "pref_user_defined_key3";
     private static final String MESSAGING_TAB_APP = "pref_messaging_tab_app";
+    private static final String BACKTRACK_PREF = "pref_backtrack";
+    private static final String BACKTRACK_PROP = "persist.service.backtrack";
+    private static final String BACKTRACK_DEFAULT = SystemProperties.get("ro.backtrack.default");
 
     private CheckBoxPreference mMusicControlPref;
     private CheckBoxPreference mAlwaysMusicControlPref;
@@ -47,6 +52,7 @@ public class InputActivity extends PreferenceActivity implements OnPreferenceCha
     private CheckBoxPreference mQuickUnlockScreenPref;
     private CheckBoxPreference mPhoneMessagingTabPref;
     private CheckBoxPreference mDisableUnlockTab;
+    private CheckBoxPreference mBackTrackPref;
 
     private ListPreference mLockscreenStylePref;
 
@@ -140,11 +146,24 @@ public class InputActivity extends PreferenceActivity implements OnPreferenceCha
         mUserDefinedKey3Pref = (Preference) prefSet.findPreference(USER_DEFINED_KEY3);
         mMessagingTabApp = (Preference) prefSet.findPreference(MESSAGING_TAB_APP);
 
+
         if (!"vision".equals(Build.DEVICE)) {
             buttonCategory.removePreference(mUserDefinedKey1Pref);
             buttonCategory.removePreference(mUserDefinedKey2Pref);
             buttonCategory.removePreference(mUserDefinedKey3Pref);
         }
+
+        /* Backtrack */
+        mBackTrackPref = (CheckBoxPreference) prefSet.findPreference(BACKTRACK_PREF);
+        //useBackTrack = SystemProperties.set(BACKTRACK_PROP, (String)BACKTRACK_DEFAULT);
+        //SystemProperties.set(BACKTRACK_PROP, BACKTRACK_DEFAULT);
+        mBackTrackPref.setChecked(Settings.System.getInt(getContentResolver(),
+                Settings.System.BACKTRACK_PREF, 1) == 1);
+
+        if (!"motus".equals(Build.DEVICE)) {
+            buttonCategory.removePreference(mBackTrackPref);
+        }
+
     }
 
     @Override
@@ -211,6 +230,13 @@ public class InputActivity extends PreferenceActivity implements OnPreferenceCha
             Settings.System.putInt(getContentResolver(),
                     Settings.System.MENU_UNLOCK_SCREEN, value ? 1 : 0);
             return true;
+        } else if (preference == mBackTrackPref) {
+            value = mBackTrackPref.isChecked();
+            Settings.System.putInt(getContentResolver(),
+                    Settings.System.BACKTRACK_PREF, value ? 1 : 0);
+            SystemProperties.set(BACKTRACK_PROP,
+                    mBackTrackPref.isChecked() ? "1" : "0");
+            return true;
         } else if (preference == mDisableUnlockTab) {
             value = mDisableUnlockTab.isChecked();
             Settings.Secure.putInt(getContentResolver(),
@@ -242,6 +268,12 @@ public class InputActivity extends PreferenceActivity implements OnPreferenceCha
                 mPhoneMessagingTabPref.setEnabled(true);
             }
             return true;
+        }
+        if (preference == mBackTrackPref) {
+            if (newValue != null) {
+                SystemProperties.set(BACKTRACK_PROP, (String)newValue);
+                return true;
+            }
         }
         return false;
     }
